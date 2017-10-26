@@ -30,3 +30,7 @@
 #*.exe
 #*.out
 #*.app
+
+/Lpy/.vs/
+/Lpy/x64
+/Lpy/Lpy/x64
