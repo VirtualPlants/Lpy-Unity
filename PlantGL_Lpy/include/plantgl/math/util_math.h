@@ -140,10 +140,15 @@ inline bool isPowerOfTwo(int val){
 
 #endif
 
+#ifndef HAVE_CBRT
+#define HAVE_CBRT
+
 /// On win32, redefine cubic root.
 inline double cbrt(double x){
 	return pow(x,1/3);
 }
+
+#endif
 
 #ifndef HAVE_ROUND
 
