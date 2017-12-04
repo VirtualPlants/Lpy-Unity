@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2010
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lpy_Unity", "libLpyUnity\libLpyUnity.vcxproj", "{D41D70D0-CA8D-4515-A8B3-2361B471647A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D41D70D0-CA8D-4515-A8B3-2361B471647A}.Release|x64.ActiveCfg = Release|x64
+		{D41D70D0-CA8D-4515-A8B3-2361B471647A}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3A494CF5-1F6B-4403-A27D-E038F085E805}
+	EndGlobalSection
+EndGlobal
