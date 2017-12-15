@@ -19,23 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Debug.h" />
-    <ClInclude Include="LpyTurtle.h" />
-    <ClInclude Include="ModuleParam.h" />
-    <ClInclude Include="UnityTurtle.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="LpyTurtle.cpp" />
-    <ClCompile Include="ModuleParam.cpp" />
-    <ClCompile Include="UnityTurtle.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{D41D70D0-CA8D-4515-A8B3-2361B471647A}</ProjectGuid>
+    <ProjectGuid>{0D115590-2E95-424D-8DB4-8C71F3E36DCA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Lpy</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
-    <ProjectName>Lpy_Unity</ProjectName>
+    <ProjectName>TestLpy</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -58,7 +50,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -110,16 +102,18 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;LPY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\Bibliothèque\Bureau\plantgl-master\src\cpp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;LPY_EXPORTS;_WINDOWS;_USRDLL;PGL_USE_DOUBLE;LPY_EXPORTS;_WINDOWS;_USRDLL;HAVE_ROUND;HAVE_TRUNC;HAVE_CBRT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\Python27\include;E:\Qt\5.9.3\msvc2015_64\include;E:\boost_1_65_1_msvc14;E:\Python27\Lib\site-packages\VPlants.Lpy-2.7.0-py2.7-win-amd64.egg\include;E:\Python27\Lib\site-packages\VPlants.PlantGL-2.23.1-py2.7-win-amd64.egg\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;lpy.lib;pglalgo.lib;pglmath.lib;pglsg.lib;pgltool.lib;python27.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>E:\Python27\libs;E:\Qt\5.9.3\msvc2015_64\lib;E:\boost_1_65_1_msvc14\lib64-msvc-14.0;E:\Python27\Lib\site-packages\VPlants.PlantGL-2.23.1-py2.7-win-amd64.egg\lib;E:\Python27\Lib\site-packages\VPlants.Lpy-2.7.0-py2.7-win-amd64.egg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -158,14 +152,18 @@
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>E:\Python27\libs;E:\Qt\5.9.3\msvc2015_64\lib;E:\boost_1_65_1_msvc14\lib64-msvc-14.0;E:\Python27\Lib\site-packages\VPlants.PlantGL-2.23.1-py2.7-win-amd64.egg\lib;E:\Python27\Lib\site-packages\VPlants.Lpy-2.7.0-py2.7-win-amd64.egg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lpy.lib;pglalgo.lib;pglmath.lib;pglsg.lib;pgltool.lib;python27.lib;boost_python-vc140-mt-1_65_1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lpy.lib;python27.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>false</SuppressStartupBanner>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

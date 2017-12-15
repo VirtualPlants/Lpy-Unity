@@ -11,27 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Debug.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="LpyTurtle.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="UnityTurtle.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="ModuleParam.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="LpyTurtle.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="UnityTurtle.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="ModuleParam.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

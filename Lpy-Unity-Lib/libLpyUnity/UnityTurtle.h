@@ -35,18 +35,18 @@ struct GeometryInfo
 class UnityTurtle : public PGL::Turtle
 {
 public:
-	typedef void(__stdcall *MakeCylinder)(Vector3, Matrix4, real_t, real_t, int, int);
-	typedef void(__stdcall *MakeCone)(Vector3, Matrix4, real_t, real_t, real_t, int, int);
-	typedef void(__stdcall *MakeSphere)(Vector3, real_t, int, int);
-	typedef void(__stdcall *MakeBox)(Vector3, Matrix4, real_t, real_t, real_t, int);
+	typedef void(__stdcall *MakeCylinder)(Vector3, Matrix4, real_t, real_t, int, int, unsigned);
+	typedef void(__stdcall *MakeCone)(Vector3, Matrix4, real_t, real_t, real_t, int, int, unsigned);
+	typedef void(__stdcall *MakeSphere)(Vector3, real_t, int, int, unsigned);
+	typedef void(__stdcall *MakeBox)(Vector3, Matrix4, real_t, real_t, real_t, int, unsigned);
 
-	typedef void(__stdcall *MakeCircle)(Vector3, Matrix4, real_t, int, int);
-	typedef void(__stdcall *MakeQuad)(Vector3, Matrix4, real_t, real_t, real_t, int);
+	typedef void(__stdcall *MakeCircle)(Vector3, Matrix4, real_t, int, int, unsigned);
+	typedef void(__stdcall *MakeQuad)(Vector3, Matrix4, real_t, real_t, real_t, int, unsigned);
 
-	typedef void(__stdcall *MakeSurface)(Vector3, Matrix4, char *, real_t, int);
-	typedef void(__stdcall *MakePolygon)(Vector3, Matrix4, Vector3 *, int, bool, int);
+	typedef void(__stdcall *MakeSurface)(Vector3, Matrix4, char *, real_t, int, unsigned);
+	typedef void(__stdcall *MakePolygon)(Vector3, Matrix4, Vector3 *, int, bool, int, unsigned);
 
-	typedef void(__stdcall *MakeGeneralizedGeometry)(Vector3, Matrix4, GeometryInfo);
+	typedef void(__stdcall *MakeGeneralizedGeometry)(Vector3, Matrix4, GeometryInfo, unsigned);
 
 private:
 	static void getTriangles(PGL::TriangleSetPtr model, GeometryInfo &info);

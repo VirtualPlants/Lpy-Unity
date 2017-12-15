@@ -84,7 +84,7 @@ void UnityTurtle::_frustum(real_t length, real_t topradius)
 
 	if (this->_coneCallback)
 		this->_coneCallback(pos, rotMatrix, this->getWidth(), topradius, length,
-			this->__params->sectionResolution, this->__params->color);
+			this->__params->sectionResolution, this->__params->color, this->popId());
 }
 
 void UnityTurtle::_cylinder(real_t length)
@@ -105,7 +105,7 @@ void UnityTurtle::_cylinder(real_t length)
 
 	if (this->_cylinderCallback)
 		this->_cylinderCallback(pos, rotMatrix, this->getWidth(), length,
-			this->__params->sectionResolution, this->__params->color);
+			this->__params->sectionResolution, this->__params->color, this->popId());
 }
 
 void UnityTurtle::_polygon(const PGL::Point3ArrayPtr& points, bool concavetest)
@@ -142,7 +142,8 @@ void UnityTurtle::_polygon(const PGL::Point3ArrayPtr& points, bool concavetest)
 	};
 
 	if (this->_polygonCallback)
-		this->_polygonCallback(pos, rotMatrix, vec, points->getSize(), concavetest, this->__params->color);
+		this->_polygonCallback(pos, rotMatrix, vec, points->getSize(), concavetest,
+			this->__params->color, this->popId());
 }
 
 void UnityTurtle::_generalizedCylinder(const PGL::Point3ArrayPtr& points,
@@ -187,7 +188,7 @@ void UnityTurtle::_generalizedCylinder(const PGL::Point3ArrayPtr& points,
 	};
 
 	if (this->_generalizedGeometryCallback)
-		this->_generalizedGeometryCallback(pos, rotMatrix, UnityTurtle::getGeometryInfoOfExtrusion(extrusion));
+		this->_generalizedGeometryCallback(pos, rotMatrix, UnityTurtle::getGeometryInfoOfExtrusion(extrusion), this->popId());
 }
 
 void UnityTurtle::_sphere(real_t radius)
@@ -200,7 +201,7 @@ void UnityTurtle::_sphere(real_t radius)
 
 	if (this->_cylinderCallback)
 		this->_sphereCallback(pos, radius,
-			this->__params->sectionResolution, this->__params->color);
+			this->__params->sectionResolution, this->__params->color, this->popId());
 }
 
 void UnityTurtle::_circle(real_t radius)
@@ -221,7 +222,7 @@ void UnityTurtle::_circle(real_t radius)
 
 	if (this->_circleCallback)
 		this->_circleCallback(pos, rotMatrix, radius,
-			this->__params->sectionResolution, this->__params->color);
+			this->__params->sectionResolution, this->__params->color, this->popId());
 }
 
 void UnityTurtle::_box(real_t length, real_t botradius, real_t topradius)
@@ -241,7 +242,8 @@ void UnityTurtle::_box(real_t length, real_t botradius, real_t topradius)
 	};
 
 	if (this->_boxCallback)
-		this->_boxCallback(pos, rotMatrix, length, botradius, topradius, this->__params->color);
+		this->_boxCallback(pos, rotMatrix, length, botradius, topradius,
+			this->__params->color, this->popId());
 }
 
 void UnityTurtle::_quad(real_t length, real_t botradius, real_t topradius)
@@ -261,7 +263,8 @@ void UnityTurtle::_quad(real_t length, real_t botradius, real_t topradius)
 	};
 
 	if (this->_quadCallback)
-		this->_quadCallback(pos, rotMatrix, length, botradius, topradius, this->__params->color);
+		this->_quadCallback(pos, rotMatrix, length, botradius, topradius,
+			this->__params->color, this->popId());
 }
 
 void UnityTurtle::_surface(const std::string& name, real_t scale)
@@ -281,7 +284,8 @@ void UnityTurtle::_surface(const std::string& name, real_t scale)
 	};
 
 	if (this->_surfaceCallback)
-		this->_surfaceCallback(pos, rotMatrix, const_cast<char *> (name.c_str()), scale, this->__params->color);
+		this->_surfaceCallback(pos, rotMatrix, const_cast<char *> (name.c_str()), scale,
+			this->__params->color, this->popId());
 }
 
 void UnityTurtle::_frame(real_t heigth, real_t cap_heigth_ratio, real_t cap_radius_ratio, real_t color, real_t transparency)
