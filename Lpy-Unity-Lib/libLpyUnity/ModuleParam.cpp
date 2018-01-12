@@ -3,21 +3,17 @@
 #include "ModuleParam.h"
 #include "Debug.h"
 
-void ModuleParam::interpretParamsInfos(ModuleParam::ParamInfo *infos, int len)
+boost::python::list ModuleParam::interpretParamsInfos(ModuleParam::ParamInfo *infos, int len)
 {
-	this->_pars = boost::python::list();
+	boost::python::list list;
 
 	for (auto i = 0; i < len; i++)
-		//Debug("Index " + std::to_string(i) + " : " + std::to_string(infos[i].type));
-		this->appendParams(infos[i]);
+		ModuleParam::appendParams(list, infos[i]);
+
+	return list;
 }
 
-const boost::python::list &ModuleParam::getParams() const
-{
-	return this->_pars;
-}
-
-void ModuleParam::appendParams(const ParamInfo &info)
+void ModuleParam::appendParams(boost::python::list &list, const ParamInfo &info)
 {
 	if (info.type == 0)
 	{
@@ -25,7 +21,7 @@ void ModuleParam::appendParams(const ParamInfo &info)
 		int value;
 
 		st >> value;
-		this->_pars.append(value);
+		list.append(value);
 	}
 	else if (info.type == 1)
 	{
@@ -33,7 +29,7 @@ void ModuleParam::appendParams(const ParamInfo &info)
 		unsigned value;
 
 		st >> value;
-		this->_pars.append(value);
+		list.append(value);
 	}
 	else if (info.type == 2)
 	{
@@ -41,7 +37,7 @@ void ModuleParam::appendParams(const ParamInfo &info)
 		float value;
 
 		st >> value;
-		this->_pars.append(value);
+		list.append(value);
 	}
 	else if (info.type == 3)
 	{
@@ -49,8 +45,10 @@ void ModuleParam::appendParams(const ParamInfo &info)
 		double value;
 
 		st >> value;
-		this->_pars.append(value);
+		list.append(value);
 	}
 	else if (info.type == 4)
-		this->_pars.append(std::string(info.data));
+	{
+		list.append(std::string(info.data));
+	}
 }

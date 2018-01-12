@@ -8,13 +8,11 @@ WriteCallback DebugCallback = nullptr;
 WriteCallback WarningCallback = nullptr;
 WriteCallback ErrorCallback = nullptr;
 PythonInitializer initializer;
-std::shared_ptr<UnityTurtle> turtle = std::make_shared<UnityTurtle>();
 
-ModuleParam moduleParam;
+std::map<unsigned long, TreeInformations> trees;
+std::vector<Rule> rules;
 
-std::shared_ptr<LPY::Lsystem> lsystem = nullptr;
-LPY::AxialTree currentTree;
-std::shared_ptr<LPY::AxialTree> interpretTree = nullptr;
+typedef boost::python::object object;
 
 void Debug(const std::string &str)
 {
@@ -34,49 +32,93 @@ void Error(const std::string &str)
 		ErrorCallback((char *)str.c_str());
 }
 
-DLL void SetMakeCylinder(UnityTurtle::MakeCylinder callback)
+DLL void SetMakeCylinder(unsigned long treeid, UnityTurtle::MakeCylinder callback)
 {
-	turtle->setMakeCylinder(callback);
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot SetMakeCylinder: treeid (" + std::to_string(treeid) + ") not found");
+
+	tree->second.turtle->setMakeCylinder(callback);
 }
 
-DLL void SetMakeCone(UnityTurtle::MakeCone callback)
+DLL void SetMakeCone(unsigned long treeid, UnityTurtle::MakeCone callback)
 {
-	turtle->setMakeCone(callback);
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot SetMakeCone: treeid (" + std::to_string(treeid) + ") not found");
+
+	tree->second.turtle->setMakeCone(callback);
 }
 
-DLL void SetMakeSphere(UnityTurtle::MakeSphere callback)
+DLL void SetMakeSphere(unsigned long treeid, UnityTurtle::MakeSphere callback)
 {
-	turtle->setMakeSphere(callback);
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot SetMakeSphere: treeid (" + std::to_string(treeid) + ") not found");
+
+	tree->second.turtle->setMakeSphere(callback);
 }
 
-DLL void SetMakeBox(UnityTurtle::MakeBox callback)
+DLL void SetMakeBox(unsigned long treeid, UnityTurtle::MakeBox callback)
 {
-	turtle->setMakeBox(callback);
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot SetMakeBox: treeid (" + std::to_string(treeid) + ") not found");
+
+	tree->second.turtle->setMakeBox(callback);
 }
 
-DLL void SetMakeCircle(UnityTurtle::MakeCircle callback)
+DLL void SetMakeCircle(unsigned long treeid, UnityTurtle::MakeCircle callback)
 {
-	turtle->setMakeCircle(callback);
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot SetMakeCircle: treeid (" + std::to_string(treeid) + ") not found");
+
+	tree->second.turtle->setMakeCircle(callback);
 }
 
-DLL void SetMakeQuad(UnityTurtle::MakeQuad callback)
+DLL void SetMakeQuad(unsigned long treeid, UnityTurtle::MakeQuad callback)
 {
-	turtle->setMakeQuad(callback);
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot SetMakeQuad: treeid (" + std::to_string(treeid) + ") not found");
+
+	tree->second.turtle->setMakeQuad(callback);
 }
 
-DLL void SetMakeSurface(UnityTurtle::MakeSurface callback)
+DLL void SetMakeSurface(unsigned long treeid, UnityTurtle::MakeSurface callback)
 {
-	turtle->setMakeSurface(callback);
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot SetMakeSurface: treeid (" + std::to_string(treeid) + ") not found");
+
+	tree->second.turtle->setMakeSurface(callback);
 }
 
-DLL void SetMakePolygon(UnityTurtle::MakePolygon callback)
+DLL void SetMakePolygon(unsigned long treeid, UnityTurtle::MakePolygon callback)
 {
-	turtle->setMakePolygon(callback);
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot SetMakePolygon: treeid (" + std::to_string(treeid) + ") not found");
+
+	tree->second.turtle->setMakePolygon(callback);
 }
 
-DLL void SetMakeGeneralizedGeometry(UnityTurtle::MakeGeneralizedGeometry callback)
+DLL void SetMakeGeneralizedGeometry(unsigned long treeid, UnityTurtle::MakeGeneralizedGeometry callback)
 {
-	turtle->setMakeGeneralizedGeometry(callback);
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot SetMakeGeneralizedGeometry: treeid (" + std::to_string(treeid) + ") not found");
+
+	tree->second.turtle->setMakeGeneralizedGeometry(callback);
+}
+
+DLL void PrintLstring(unsigned long treeid)
+{
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot PrintLstring: treeid (" + std::to_string(treeid) + ") not found");
+	Debug(tree->second.currentTree.str());
 }
 
 DLL void SetDebug(WriteCallback callback)
@@ -96,153 +138,269 @@ DLL void SetError(WriteCallback callback)
 
 DLL void SetColorListSize(int size)
 {
-	turtle->setColorListSize(size);
+	for (auto &it : trees)
+		it.second.turtle->setColorListSize(size);
 }
 
-DLL void AddModuleAt(unsigned int pos, char *name, ModuleParam::ParamInfo *infos, int len)
+DLL void AddModuleAt(unsigned long treeid, unsigned int pos, char *name, ModuleParam::ParamInfo *infos, int len)
 {
-	moduleParam.interpretParamsInfos(infos, len);
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot AddModuleAt: treeid (" + std::to_string(treeid) + ") not found");
 
-	if (currentTree.size() == pos - 1)
-		currentTree.append(LPY::ParamModule(name, moduleParam.getParams()));
+	auto params = ModuleParam::interpretParamsInfos(infos, len);
+
+	if (tree->second.currentTree.size() == pos - 1)
+		tree->second.currentTree.append(LPY::ParamModule(name, params));
 	else
-		currentTree.insertAt(pos, LPY::ParamModule(name, moduleParam.getParams()));
+		tree->second.currentTree.insertAt(pos, LPY::ParamModule(name, params));
 }
 
-DLL void AppendModule(char *name, ModuleParam::ParamInfo *infos, int len)
+DLL void AppendModule(unsigned long treeid, char *name, ModuleParam::ParamInfo *infos, int len)
 {
-	moduleParam.interpretParamsInfos(infos, len);
-	currentTree.append(LPY::ParamModule(name, moduleParam.getParams()));
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot AppendModule: treeid (" + std::to_string(treeid) + ") not found");
+
+	tree->second.currentTree.append(LPY::ParamModule(name, ModuleParam::interpretParamsInfos(infos, len)));
 }
 
-DLL int GetFirstParamModuleAt(unsigned int pos)
+DLL int GetFirstParamModuleAt(unsigned long treeid, unsigned int pos)
 {
-	if (pos >= currentTree.size())
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+	{
+		Error("Cannot GetFirstParamModuleAt: treeid (" + std::to_string(treeid) + ") not found");
+		return -1;
+	}
+
+	if (pos >= tree->second.currentTree.size())
 		return -1;
 
-	auto module = currentTree.getAt(pos);
+	auto module = tree->second.currentTree.getAt(pos);
 	if (module.size() == 0)
 		return -1;
 
 	return boost::python::extract<int>(module.getAt(0));
 }
 
-DLL int GetThirdParamModuleAt(unsigned int pos)
+DLL int GetSecondParamModuleAt(unsigned long treeid, unsigned int pos)
 {
-	if (interpretTree == nullptr || pos >= interpretTree->size())
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+	{
+		Error("Cannot GetSecondParamModuleAt: treeid (" + std::to_string(treeid) + ") not found");
+		return -1;
+	}
+
+	if (tree->second.interpretTree == nullptr || pos >= tree->second.interpretTree->size())
 		return -1;
 
-	auto module = interpretTree->getAt(pos);
+	auto module = tree->second.interpretTree->getAt(pos);
+	if (module.size() < 2)
+		return -1;
+
+	return boost::python::extract<int>(module.getAt(1));
+}
+
+DLL int GetThirdParamModuleAt(unsigned long treeid, unsigned int pos)
+{
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+	{
+		Error("Cannot GetThirdParamModuleAt: treeid (" + std::to_string(treeid) + ") not found");
+		return -1;
+	}
+
+	if (tree->second.interpretTree == nullptr || pos >= tree->second.interpretTree->size())
+		return -1;
+
+	auto module = tree->second.interpretTree->getAt(pos);
 	if (module.size() < 3)
 		return -1;
 
 	return boost::python::extract<int>(module.getAt(2));
 }
 
-DLL char *GetNameModuleAt(unsigned int pos)
+DLL char *GetNameModuleAt(unsigned long treeid, unsigned int pos)
 {
-	if (pos >= currentTree.size())
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+	{
+		Error("Cannot GetNameModuleAt: treeid (" + std::to_string(treeid) + ") not found");
+		return nullptr;
+	}
+
+	if (pos >= tree->second.currentTree.size())
 		return "";
 
-	return (char *)currentTree.getAt(pos).name().c_str();
+	return (char *)tree->second.currentTree.getAt(pos).name().c_str();
 }
 
-DLL void ChangeParamsModuleAt(unsigned int pos, ModuleParam::ParamInfo *infos, int len)
+DLL void ChangeParamsModuleAt(unsigned long treeid, unsigned int pos, ModuleParam::ParamInfo *infos, int len)
 {
-	auto module = currentTree.getAt(pos);
-	moduleParam.interpretParamsInfos(infos, len);
-	module.setPyArgs(moduleParam.getParams());
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot ChangeParamsModuleAt: treeid (" + std::to_string(treeid) + ") not found");
+
+	auto module = tree->second.currentTree.getAt(pos);
+	module.setPyArgs(ModuleParam::interpretParamsInfos(infos, len));
 }
 
-DLL int GetDerivationLenght()
+DLL int GetDerivationLenght(unsigned long fileid)
 {
-	if (lsystem)
+	auto &rule = std::find_if(rules.begin(), rules.end(), [fileid](Rule &it) -> bool {
+		if (it.fileid == fileid)
+			return true;
+		return false;
+	});
+
+	//auto &rule = rules.find(fileid);
+	if (rule == rules.end())
+	{
+		Error("Cannot GetDerivationLenght: fileid (" + std::to_string(fileid) + ") not found");
 		return 0;
+	}
 
-	return static_cast<int> (lsystem->derivationLength());
+	return static_cast<int> (rule->lsystem.derivationLength());
 }
 
-DLL void Interpret(int interation)
+DLL void Interpret(unsigned long treeid, int iteration)
 {
-	Debug(currentTree.str());
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot Interpret: treeid (" + std::to_string(treeid) + ") not found");
+	/*
+	if (!tree->second.lsystem)
+		return Error("Cannot Interpret: lsystem not init");
 
-	interpretTree = std::make_shared<LPY::AxialTree>();
+	
+	auto deriveTree = tree->second.lsystem->derive(tree->second.currentTree);
+	auto interpretedTree = tree->second.lsystem->interpret(deriveTree);
+	tree->second.interpretTree = std::make_shared<LPY::AxialTree>(interpretedTree);
 
-	for (auto it = currentTree.begin(); it != currentTree.end(); ++it)
+	Debug(tree->second.interpretTree->str());
+	//return;
+	//LPY::turtle_interpretation(*tree->second.interpretTree, *tree->second.turtle);
+	*/
+
+	LPY::AxialTree updateTree(tree->second.currentTree);
+
+	for (auto it = updateTree.end() - 1; it != updateTree.begin(); --it)
 	{
 		if (it->name() == "I")
 		{
-			boost::python::list pars;
+			auto children = updateTree.children(it, LPY::ConsiderFilter::consider("I T B"));
+			int nbNode = 0;
 
-			pars.append<int>(0);
-			interpretTree->append(LPY::ParamModule(",", pars));
+			for (auto c : children)
+			{
+				if (c->name() == "I")
+					nbNode += boost::python::extract<int>(c->getAt(0));
+				else if (c->name() == "B" || c->name() == "T")
+					nbNode += 1;
+			}
+			it->setPyArgs(boost::python::list(boost::python::make_tuple(nbNode)));
+		}
+	}
 
-			pars = boost::python::list();
-			pars.append(0.1f);
-			interpretTree->append(LPY::ParamModule("_", pars));
+	tree->second.interpretTree = std::make_shared<LPY::AxialTree>();
 
-			pars = boost::python::list();
-			pars.append(it->getAt(1) + 1);
-			pars.append(0.1f);
-			pars.append(-1);
-			interpretTree->append(LPY::ParamModule("F", pars));
+	auto getRadius = [](const int &nbdesc) -> double
+	{
+		return 0.1 * std::pow(nbdesc + 1, 0.4);
+	};
+
+	for (auto it = updateTree.begin(); it != updateTree.end(); ++it)
+	{
+		if (it->name() == "S")
+		{
+			tree->second.interpretTree->append(LPY::ParamModule("@Ts", object(0.03)));
+			tree->second.interpretTree->append(LPY::ParamModule("@Tp"));
+
+			if (it + 1 == updateTree.end())
+			{
+				tree->second.interpretTree->append(LPY::ParamModule(";", object(2)));
+				tree->second.interpretTree->append(LPY::ParamModule("@O", object(0.2), object(0)));
+			}
+		}
+		else if (it->name() == "I")
+		{
+			int nbdesc = boost::python::extract<int>(it->getAt(0));
+			double startRadius = (double)(int)(getRadius(nbdesc) * 1000) / 1000;
+			double endRadius = (double)(int)(getRadius(nbdesc - 1) * 1000) / 1000;
+
+			tree->second.interpretTree->append(LPY::ParamModule("_", object(startRadius)));
+			tree->second.interpretTree->append(LPY::ParamModule(";", object(1)));
+			tree->second.interpretTree->append(LPY::ParamModule("nF", object(1), object(0.1), object(endRadius)));
 		}
 		else if (it->name() == "B")
 		{
-			boost::python::list pars;
+			int nbdesc = boost::python::extract<int>(updateTree.parent(it, LPY::ConsiderFilter::consider("I"))->getAt(0));
+			double radius = (double)(int)(getRadius(nbdesc) * 1000) / 1000;
 
-			pars.append<int>(5);
-			interpretTree->append(LPY::ParamModule(",", pars));
-
-			pars = boost::python::list();
-			pars.append(0.1f);
-			interpretTree->append(LPY::ParamModule("_", pars));
-
-			pars = boost::python::list();
-			pars.append(it->getAt(1) + 1);
-			pars.append(0.1f);
-			pars.append(it->getAt(0));
-			interpretTree->append(LPY::ParamModule("F", pars));
+			tree->second.interpretTree->append(LPY::ParamModule("f", object(radius)));
+			tree->second.interpretTree->append(LPY::ParamModule(";", object(3)));
+			tree->second.interpretTree->append(LPY::ParamModule("@O", object(0.1), object(it->getAt(0))));
+		}
+		else if (it->name() == "T")
+		{
+			tree->second.interpretTree->append(LPY::ParamModule(";", object(3)));
+			tree->second.interpretTree->append(LPY::ParamModule("@O", object(0.125), object(it->getAt(0))));
 		}
 		else
-			interpretTree->append(LPY::ParamModule(it->name(), it->getPyArgs()));
+			tree->second.interpretTree->append(LPY::ParamModule(it->name(), it->getPyArgs()));
 	}
 
-	LPY::turtle_interpretation(*interpretTree, *turtle);
+	LPY::turtle_interpretation(*tree->second.interpretTree, *tree->second.turtle);
 
-	if (!lsystem)
+	/*
+	if (!tree->second.lsystem)
 		return;
 
-	currentTree = lsystem->derive(currentTree, interation, 1, true);
-	currentTree = lsystem->interpret(currentTree);
-	LPY::turtle_interpretation(currentTree, *turtle);
+	tree->second.currentTree = tree->second.lsystem->derive(tree->second.currentTree, iteration, 1, true);
+	tree->second.currentTree = tree->second.lsystem->interpret(tree->second.currentTree);
+	LPY::turtle_interpretation(tree->second.currentTree, *tree->second.turtle);
+	*/
 }
 
-DLL void ResetAxialTree()
+DLL void ResetAxialTree(unsigned long treeid)
 {
-	currentTree = LPY::AxialTree();
-	interpretTree = nullptr;
+	auto &tree = trees.find(treeid);
+	if (tree == trees.end())
+		return Error("Cannot ResetAxialTree: treeid (" + std::to_string(treeid) + ") not found");
+
+	tree->second.currentTree = LPY::AxialTree();
+	tree->second.interpretTree = nullptr;
 }
 
-DLL void StopInterpretFile()
+DLL void AddNewTree(unsigned long treeid, unsigned long fileid)
 {
-	lsystem.reset();
+	auto &tree = trees.find(treeid);
+	if (tree != trees.end())
+		return Error("Cannot AddNewTree: treeid (" + std::to_string(treeid) + ") already exist");
+
+	/*auto &rule = std::find_if(rules.begin(), rules.end(), [fileid](Rule &it) -> bool {
+		if (it.fileid == fileid)
+			return true;
+		return false;
+	});
+	if (rule == rules.end())
+		return Error("Cannot AddInterpretFile: file (" + std::to_string(fileid) + ") not found");
+		*/
+	trees.emplace(treeid, std::move(TreeInformations()));
+	trees[treeid].fileid = fileid;
 }
 
-DLL void StartInterpretFile(char *filename)
+DLL void AddInterpretFile(char *filename, unsigned long fileid)
 {
-	currentTree = LPY::AxialTree();
+	auto &rule = std::find_if(rules.begin(), rules.end(), [fileid](Rule &it) -> bool {
+		if (it.fileid == fileid)
+			return true;
+		return false;
+	});
+	if (rule != rules.end())
+		return Error("Cannot AddInterpretFile: file (" + std::to_string(fileid) + ") already exist");
 
-	return;
-	
-	lsystem = std::make_shared<LPY::Lsystem>(filename);
-
-	currentTree = lsystem->getAxiom();
-	currentTree = lsystem->interpret(currentTree);
-}
-
-DLL void Interpret_LString(char *lstring)
-{
-	LPY::AxialTree tree(lstring);
-	LPY::turtle_interpretation(tree, *turtle);
+	rules.push_back(Rule(fileid, filename));
 }

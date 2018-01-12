@@ -1,36 +1,82 @@
 #include <iostream>
 #include <memory>
 #include <exception>
+#include <cmath>
+
 #include <axialtree.h>
+
+#include <Python.h>
 #include <lsystem.h>
 #include <boost/python/errors.hpp>
-#include <Python.h>
+
 #include <boost/python/import.hpp>
 #include <fstream>
 
+#include "LpyTurtle.h"
+
 int main(void)
 {
+	bool change = false;
+
 	Py_Initialize();
 	
-	std::string file = "E:\\test.lpy";
-
-	//boost::python::api::object main_module = boost::python::import("__main__");
-	//boost::python::api::object main_namespace = main_module.attr("__dict__");
-
-	try
+	if (change)
 	{
-		std::cout << "before Lsystem" << std::endl;
-		//boost::python::exec("import sys ; print sys.path", main_namespace);
-		//boost::python::exec("import openalea.lpy ; print 'lpy imported'", main_namespace);
-		LPY::Lsystem * system = new LPY::Lsystem();
-		std::cout << "after Lsystem" << std::endl;
-		//system->setFilename()
+		ModuleParam::ParamInfo *param1 = new ModuleParam::ParamInfo[1];
+
+		AddInterpretFile("C:\\Lpy\\exempleGrowInterpretation2.lpy", 0);
+		AddNewTree(0, 0);
+
+		AppendModule(0, "S", nullptr, 0);
+
+		param1[0].type = 0;
+		param1[0].data = "0";
+		AppendModule(0, "I", param1, 1);
+
+		AppendModule(0, "[", nullptr, 0);
+		AppendModule(0, "+", nullptr, 0);
+
+		param1[0].type = 0;
+		param1[0].data = "1";
+		AppendModule(0, "B", param1, 1);
+
+		AppendModule(0, "]", nullptr, 0);
+
+		param1[0].type = 0;
+		param1[0].data = "0";
+		AppendModule(0, "I", param1, 1);
+
+		param1[0].type = 0;
+		param1[0].data = "0";
+		AppendModule(0, "T", param1, 1);
+
+		Interpret(0, 1);
 	}
-	catch (boost::python::error_already_set e)
+	else
 	{
-		PyErr_Print();
+		std::shared_ptr<LPY::Lsystem> system;
+
+		try
+		{
+			system = std::make_shared<LPY::Lsystem>("C:\\Lpy\\exempleGrowInterpretation2.lpy");
+			std::cout << system->getAxiom().str() << std::endl;
+			auto axiom = LPY::AxialTree("SI(0)[+I(0)[+I(0)[+B(5)]I(0)T(2)]I(0)T(1)]I(0)[-I(0)[+B(4)]I(0)T(3)]I(0)T(0)");
+
+			//std::cout << system->interpret(system->derive(axiom)).str() << std::endl;
+
+			std::cout << "________________________" << std::endl;
+
+			axiom = LPY::AxialTree("SI(0)[+B(1)]I(0)T(0)");
+
+			std::cout << system->interpret(system->derive(axiom)).str() << std::endl;
+		}
+		catch (...)
+		{
+			PyErr_Print();
+		}
 	}
 	Py_Finalize();
+
 	std::cin.get();
 	return 0;
 }

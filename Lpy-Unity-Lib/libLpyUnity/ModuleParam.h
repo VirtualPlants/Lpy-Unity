@@ -5,8 +5,6 @@
 
 class ModuleParam
 {
-	boost::python::list _pars;
-
 public:
 	struct ParamInfo
 	{
@@ -14,16 +12,10 @@ public:
 		char *data;
 	};
 
-public:
-	ModuleParam() = default;
-	~ModuleParam() = default;
+	static boost::python::list interpretParamsInfos(ParamInfo *infos, int len);
 	
-	void interpretParamsInfos(ParamInfo *infos, int len);
-
-	const boost::python::list &getParams() const;
-
 private:
-	void appendParams(const ParamInfo &info);
+	static void appendParams(boost::python::list &list, const ParamInfo &info);
 };
 
 #endif
