@@ -51,6 +51,8 @@ public:
 private:
 	static void getTriangles(PGL::TriangleSetPtr model, GeometryInfo &info);
 	static GeometryInfo getGeometryInfoOfExtrusion(std::shared_ptr<PGL::Extrusion> extrusion);
+	Matrix4 getCurrentRotationMatrix();
+	Vector3 getCurrentPosition();
 
 private:
 	int _colorListSize;

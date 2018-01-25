@@ -177,7 +177,7 @@ DLL int GetFirstParamModuleAt(unsigned long treeid, unsigned int pos)
 	if (pos >= tree->second.currentTree.size())
 		return -1;
 
-	auto module = tree->second.currentTree.getAt(pos);
+	auto &module = tree->second.currentTree.getAt(pos);
 	if (module.size() == 0)
 		return -1;
 
@@ -196,7 +196,7 @@ DLL int GetSecondParamModuleAt(unsigned long treeid, unsigned int pos)
 	if (tree->second.interpretTree == nullptr || pos >= tree->second.interpretTree->size())
 		return -1;
 
-	auto module = tree->second.interpretTree->getAt(pos);
+	auto &module = tree->second.interpretTree->getAt(pos);
 	if (module.size() < 2)
 		return -1;
 
@@ -215,7 +215,7 @@ DLL int GetThirdParamModuleAt(unsigned long treeid, unsigned int pos)
 	if (tree->second.interpretTree == nullptr || pos >= tree->second.interpretTree->size())
 		return -1;
 
-	auto module = tree->second.interpretTree->getAt(pos);
+	auto &module = tree->second.interpretTree->getAt(pos);
 	if (module.size() < 3)
 		return -1;
 
@@ -243,7 +243,7 @@ DLL void ChangeParamsModuleAt(unsigned long treeid, unsigned int pos, ModulePara
 	if (tree == trees.end())
 		return Error("Cannot ChangeParamsModuleAt: treeid (" + std::to_string(treeid) + ") not found");
 
-	auto module = tree->second.currentTree.getAt(pos);
+	auto &module = tree->second.currentTree.getAt(pos);
 	module.setPyArgs(ModuleParam::interpretParamsInfos(infos, len));
 }
 
@@ -305,18 +305,22 @@ DLL void Interpret(unsigned long treeid, int iteration)
 	}
 
 	tree->second.interpretTree = std::make_shared<LPY::AxialTree>();
+	int branchAngle;
+	bool drawLeaf;
 
 	auto getRadius = [](const int &nbdesc) -> double
 	{
-		return 0.1 * std::pow(nbdesc + 1, 0.4);
+		return 0.05 * std::pow(nbdesc + 1, 0.6);
 	};
 
 	for (auto it = updateTree.begin(); it != updateTree.end(); ++it)
 	{
 		if (it->name() == "S")
 		{
-			tree->second.interpretTree->append(LPY::ParamModule("@Ts", object(0.03)));
+			tree->second.interpretTree->append(LPY::ParamModule("@Ts", object(it->getAt(0))));
 			tree->second.interpretTree->append(LPY::ParamModule("@Tp"));
+			branchAngle = bp::extract<int>(it->getAt(1));
+			drawLeaf = bp::extract<bool>(it->getAt(2));
 
 			if (it + 1 == updateTree.end())
 			{
@@ -329,10 +333,35 @@ DLL void Interpret(unsigned long treeid, int iteration)
 			int nbdesc = boost::python::extract<int>(it->getAt(0));
 			double startRadius = (double)(int)(getRadius(nbdesc) * 1000) / 1000;
 			double endRadius = (double)(int)(getRadius(nbdesc - 1) * 1000) / 1000;
+			float length = 1;
+			float dl = 0.1;
 
 			tree->second.interpretTree->append(LPY::ParamModule("_", object(startRadius)));
 			tree->second.interpretTree->append(LPY::ParamModule(";", object(1)));
-			tree->second.interpretTree->append(LPY::ParamModule("nF", object(1), object(0.1), object(endRadius)));
+			if (drawLeaf && (it + 1)->name() == "T")
+			{
+				float radius = endRadius;
+				uint32_t nbSteps = uint32_t(length / dl);
+				float deltaStep = length - nbSteps * dl;
+				float w = startRadius;
+				float dw = (radius - w) / length;
+				float cw = w;
+
+				for (uint32_t i = 1; i <= nbSteps; ++i)
+				{
+					cw += dw * dl;
+					tree->second.interpretTree->append(LPY::ParamModule("["));
+					tree->second.interpretTree->append(LPY::ParamModule("/", object(90 * i)));
+					tree->second.interpretTree->append(LPY::ParamModule("&", object(90)));
+					tree->second.interpretTree->append(LPY::ParamModule("\\", object(90)));
+					tree->second.interpretTree->append(LPY::ParamModule("surface", object("LeaveBent_e_03"), object(6)));
+					//tree->second.interpretTree->append(LPY::ParamModule("F"));
+					tree->second.interpretTree->append(LPY::ParamModule("]"));
+					tree->second.interpretTree->append(LPY::ParamModule("F", object(dl), object(cw)));
+				}
+			}
+			else
+				tree->second.interpretTree->append(LPY::ParamModule("nF", object(length), object(dl), object(endRadius)));
 		}
 		else if (it->name() == "B")
 		{
@@ -348,9 +377,16 @@ DLL void Interpret(unsigned long treeid, int iteration)
 			tree->second.interpretTree->append(LPY::ParamModule(";", object(3)));
 			tree->second.interpretTree->append(LPY::ParamModule("@O", object(0.125), object(it->getAt(0))));
 		}
+		else if (it->name() == "R")
+		{
+			auto dir = (bp::extract<bool>(it->getAt(0))) ? "+" : "-";
+			tree->second.interpretTree->append(LPY::ParamModule(dir, object(branchAngle)));
+		}
 		else
 			tree->second.interpretTree->append(LPY::ParamModule(it->name(), it->getPyArgs()));
 	}
+
+	//Debug(tree->second.interpretTree->str());
 
 	LPY::turtle_interpretation(*tree->second.interpretTree, *tree->second.turtle);
 

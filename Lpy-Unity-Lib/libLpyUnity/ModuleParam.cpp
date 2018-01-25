@@ -15,40 +15,37 @@ boost::python::list ModuleParam::interpretParamsInfos(ModuleParam::ParamInfo *in
 
 void ModuleParam::appendParams(boost::python::list &list, const ParamInfo &info)
 {
-	if (info.type == 0)
-	{
-		std::stringstream st(info.data);
-		int value;
+	std::stringstream st(info.data);
 
-		st >> value;
-		list.append(value);
-	}
-	else if (info.type == 1)
+	switch (info.type)
 	{
-		std::stringstream st(info.data);
-		unsigned value;
-
-		st >> value;
-		list.append(value);
-	}
-	else if (info.type == 2)
-	{
-		std::stringstream st(info.data);
-		float value;
-
-		st >> value;
-		list.append(value);
-	}
-	else if (info.type == 3)
-	{
-		std::stringstream st(info.data);
-		double value;
-
-		st >> value;
-		list.append(value);
-	}
-	else if (info.type == 4)
-	{
+	case 0:
+		int valueI;
+		st >> valueI;
+		list.append(valueI);
+		break;
+	case 1:
+		unsigned valueU;
+		st >> valueU;
+		list.append(valueU);
+		break;
+	case 2:
+		float valueF;
+		st >> valueF;
+		list.append(valueF);
+		break;
+	case 3:
+		double valueD;
+		st >> valueD;
+		list.append(valueD);
+		break;
+	case 4:
 		list.append(std::string(info.data));
+		break;
+	case 5:
+		list.append(std::string(info.data) == "True");
+		break;
+	default:
+		break;
 	}
 }

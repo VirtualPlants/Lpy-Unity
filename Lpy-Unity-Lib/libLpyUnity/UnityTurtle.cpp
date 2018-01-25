@@ -61,6 +61,56 @@ GeometryInfo UnityTurtle::getGeometryInfoOfExtrusion(std::shared_ptr<PGL::Extrus
 	return info;
 }
 
+Matrix4 UnityTurtle::getCurrentRotationMatrix()
+{
+	auto data = this->__params->getOrientationMatrix().getData();
+	/*Matrix4 rotMatrix = {
+		{ data[0], -data[1], data[2], 0 },
+		{ data[3], -data[4], data[5], 0 },
+		{ data[6], -data[7], data[8], 0 },
+		{ 0, 0, 0, 0 },
+	};*/
+	Matrix4 rotMatrix = {
+		{ data[0], -data[1], data[2], 0 },
+		{ data[3], -data[4], data[5], 0 },
+		{ data[6], -data[7], data[8], 0 },
+		{ 0, 0, 0, 0 },
+	};
+	/*
+	Debug("Lib Matrix4 1: (" +
+		std::to_string(rotMatrix.column1[0]) + ", " +
+		std::to_string(rotMatrix.column1[1]) + ", " +
+		std::to_string(rotMatrix.column1[2]) + ", " +
+		std::to_string(rotMatrix.column1[3]) + ")");
+	Debug("Lib Matrix4 2: (" +
+		std::to_string(rotMatrix.column2[0]) + ", " +
+		std::to_string(rotMatrix.column2[1]) + ", " +
+		std::to_string(rotMatrix.column2[2]) + ", " +
+		std::to_string(rotMatrix.column2[3]) + ")");
+	Debug("Lib Matrix4 3: (" +
+		std::to_string(rotMatrix.column3[0]) + ", " +
+		std::to_string(rotMatrix.column3[1]) + ", " +
+		std::to_string(rotMatrix.column3[2]) + ", " +
+		std::to_string(rotMatrix.column3[3]) + ")");
+	Debug("Lib Matrix4 4: (" +
+		std::to_string(rotMatrix.column4[0]) + ", " +
+		std::to_string(rotMatrix.column4[1]) + ", " +
+		std::to_string(rotMatrix.column4[2]) + ", " +
+		std::to_string(rotMatrix.column4[3]) + ")");
+		*/
+	return rotMatrix;
+}
+
+Vector3 UnityTurtle::getCurrentPosition()
+{
+	Vector3 pos = {
+		this->__params->position.y(),
+		this->__params->position.z(),
+		this->__params->position.x()
+	};
+	return pos;
+}
+
 size_t UnityTurtle::getColorListSize() const
 {
 	return this->_colorListSize;
@@ -68,44 +118,27 @@ size_t UnityTurtle::getColorListSize() const
 
 void UnityTurtle::_frustum(real_t length, real_t topradius)
 {
-	Vector3 pos = {
-		this->__params->position.y(),
-		this->__params->position.z(),
-		this->__params->position.x()
-	};
-
-	auto data = this->__params->getOrientationMatrix().getData();
-	Matrix4 rotMatrix = {
-		{ data[0], -data[1], data[2], 0 },
-		{ data[3], -data[4], data[5], 0 },
-		{ data[6], -data[7], data[8], 0 },
-		{ 0, 0, 0, 0 },
-	};
-
 	if (this->_coneCallback)
-		this->_coneCallback(pos, rotMatrix, this->getWidth(), topradius, length,
-			this->__params->sectionResolution, this->__params->color, this->popId());
+		this->_coneCallback(this->getCurrentPosition(),
+			this->getCurrentRotationMatrix(),
+			this->getWidth(),
+			topradius,
+			length,
+			this->__params->sectionResolution,
+			this->__params->color,
+			this->popId());
 }
 
 void UnityTurtle::_cylinder(real_t length)
 {
-	Vector3 pos = {
-		this->__params->position.y(),
-		this->__params->position.z(),
-		this->__params->position.x()
-	};
-	
-	auto data = this->__params->getOrientationMatrix().getData();
-	Matrix4 rotMatrix = {
-		{ data[0], -data[1], data[2], 0 },
-		{ data[3], -data[4], data[5], 0 },
-		{ data[6], -data[7], data[8], 0 },
-		{ 0, 0, 0, 0 },
-	};
-
 	if (this->_cylinderCallback)
-		this->_cylinderCallback(pos, rotMatrix, this->getWidth(), length,
-			this->__params->sectionResolution, this->__params->color, this->popId());
+		this->_cylinderCallback(this->getCurrentPosition(),
+			this->getCurrentRotationMatrix(),
+			this->getWidth(),
+			length,
+			this->__params->sectionResolution,
+			this->__params->color,
+			this->popId());
 }
 
 void UnityTurtle::_polygon(const PGL::Point3ArrayPtr& points, bool concavetest)
@@ -125,25 +158,13 @@ void UnityTurtle::_polygon(const PGL::Point3ArrayPtr& points, bool concavetest)
 		vec[index++] = { it->x(), it->y(), it->z() };
 	}
 
-	auto angle = this->__params->getOrientationMatrix().eulerAnglesXYZ();
-
-	Vector3 pos = {
-		this->__params->position.y(),
-		this->__params->position.z(),
-		this->__params->position.x()
-	};
-
-	auto data = this->__params->getOrientationMatrix().getData();
-	Matrix4 rotMatrix = {
-		{ data[0], -data[1], data[2], 0 },
-		{ data[3], -data[4], data[5], 0 },
-		{ data[6], -data[7], data[8], 0 },
-		{ 0, 0, 0, 0 },
-	};
-
 	if (this->_polygonCallback)
-		this->_polygonCallback(pos, rotMatrix, vec, points->getSize(), concavetest,
-			this->__params->color, this->popId());
+		this->_polygonCallback(this->getCurrentPosition(),
+			this->getCurrentRotationMatrix(),
+			vec, points->getSize(),
+			concavetest,
+			this->__params->color,
+			this->popId());
 }
 
 void UnityTurtle::_generalizedCylinder(const PGL::Point3ArrayPtr& points,
@@ -173,119 +194,67 @@ void UnityTurtle::_generalizedCylinder(const PGL::Point3ArrayPtr& points,
 	extrusion->getCCW() = crossSectionCCW;
 	extrusion->getInitialNormal() = leftList[0];
 
-	Vector3 pos = {
-		this->__params->position.y(),
-		this->__params->position.z(),
-		this->__params->position.x()
-	};
-
-	auto data = this->__params->getOrientationMatrix().getData();
-	Matrix4 rotMatrix = {
-		{ data[0], -data[1], data[2], 0 },
-		{ data[3], -data[4], data[5], 0 },
-		{ data[6], -data[7], data[8], 0 },
-		{ 0, 0, 0, 0 },
-	};
-
 	if (this->_generalizedGeometryCallback)
-		this->_generalizedGeometryCallback(pos, rotMatrix, UnityTurtle::getGeometryInfoOfExtrusion(extrusion), this->popId());
+		this->_generalizedGeometryCallback(this->getCurrentPosition(),
+			this->getCurrentRotationMatrix(),
+			UnityTurtle::getGeometryInfoOfExtrusion(extrusion),
+			this->popId());
 }
 
 void UnityTurtle::_sphere(real_t radius)
 {
-	Vector3 pos = {
-		this->__params->position.y(),
-		this->__params->position.z(),
-		this->__params->position.x()
-	};
-
 	if (this->_cylinderCallback)
-		this->_sphereCallback(pos, radius,
-			this->__params->sectionResolution, this->__params->color, this->popId());
+		this->_sphereCallback(this->getCurrentPosition(),
+			radius,
+			this->__params->sectionResolution,
+			this->__params->color,
+			this->popId());
 }
 
 void UnityTurtle::_circle(real_t radius)
 {
-	Vector3 pos = {
-		this->__params->position.y(),
-		this->__params->position.z(),
-		this->__params->position.x()
-	};
-
-	auto data = this->__params->getOrientationMatrix().getData();
-	Matrix4 rotMatrix = {
-		{ data[0], -data[1], data[2], 0 },
-		{ data[3], -data[4], data[5], 0 },
-		{ data[6], -data[7], data[8], 0 },
-		{ 0, 0, 0, 0 },
-	};
-
 	if (this->_circleCallback)
-		this->_circleCallback(pos, rotMatrix, radius,
-			this->__params->sectionResolution, this->__params->color, this->popId());
+		this->_circleCallback(this->getCurrentPosition(),
+			this->getCurrentRotationMatrix(),
+			radius,
+			this->__params->sectionResolution,
+			this->__params->color,
+			this->popId());
 }
 
 void UnityTurtle::_box(real_t length, real_t botradius, real_t topradius)
 {
-	Vector3 pos = {
-		this->__params->position.y(),
-		this->__params->position.z(),
-		this->__params->position.x()
-	};
-
-	auto data = this->__params->getOrientationMatrix().getData();
-	Matrix4 rotMatrix = {
-		{ data[0], -data[1], data[2], 0 },
-		{ data[3], -data[4], data[5], 0 },
-		{ data[6], -data[7], data[8], 0 },
-		{ 0, 0, 0, 0 },
-	};
-
 	if (this->_boxCallback)
-		this->_boxCallback(pos, rotMatrix, length, botradius, topradius,
-			this->__params->color, this->popId());
+		this->_boxCallback(this->getCurrentPosition(),
+			this->getCurrentRotationMatrix(),
+			length,
+			botradius,
+			topradius,
+			this->__params->color,
+			this->popId());
 }
 
 void UnityTurtle::_quad(real_t length, real_t botradius, real_t topradius)
 {
-	Vector3 pos = {
-		this->__params->position.y(),
-		this->__params->position.z(),
-		this->__params->position.x()
-	};
-
-	auto data = this->__params->getOrientationMatrix().getData();
-	Matrix4 rotMatrix = {
-		{ data[0], -data[1], data[2], 0 },
-		{ data[3], -data[4], data[5], 0 },
-		{ data[6], -data[7], data[8], 0 },
-		{ 0, 0, 0, 0 },
-	};
-
 	if (this->_quadCallback)
-		this->_quadCallback(pos, rotMatrix, length, botradius, topradius,
-			this->__params->color, this->popId());
+		this->_quadCallback(this->getCurrentPosition(),
+			this->getCurrentRotationMatrix(),
+			length,
+			botradius,
+			topradius,
+			this->__params->color,
+			this->popId());
 }
 
 void UnityTurtle::_surface(const std::string& name, real_t scale)
 {
-	Vector3 pos = {
-		this->__params->position.y(),
-		this->__params->position.z(),
-		this->__params->position.x()
-	};
-
-	auto data = this->__params->getOrientationMatrix().getData();
-	Matrix4 rotMatrix = {
-		{ data[0], -data[1], data[2], 0 },
-		{ data[3], -data[4], data[5], 0 },
-		{ data[6], -data[7], data[8], 0 },
-		{ 0, 0, 0, 0 },
-	};
-
 	if (this->_surfaceCallback)
-		this->_surfaceCallback(pos, rotMatrix, const_cast<char *> (name.c_str()), scale,
-			this->__params->color, this->popId());
+		this->_surfaceCallback(this->getCurrentPosition(),
+			this->getCurrentRotationMatrix(),
+			const_cast<char *> (name.c_str()),
+			scale,
+			this->__params->color,
+			this->popId());
 }
 
 void UnityTurtle::_frame(real_t heigth, real_t cap_heigth_ratio, real_t cap_radius_ratio, real_t color, real_t transparency)
